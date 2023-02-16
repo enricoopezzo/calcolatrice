@@ -11,12 +11,14 @@ class Calculator{
     }
 
     delete(){
-
+        this.currentOperand = this.currentOperand.toString().slice(0, -1);
     }
 
     appendNumber(number){
-        if (number === `,` && !this.currentOperand){this.currentOperand = this.currentOperand.toString() + `0`}
-        else if (number === `,` && this.currentOperand.includes(`,`)) return;
+        if (number === `.` && !this.currentOperand){this.currentOperand = this.currentOperand.toString() + `0`}
+        else if (number === `.` && this.currentOperand.includes(`.`)) return;
+        if(this.currentOperand.at(-4) === `.`) return;
+        if(this.currentOperand.replace(`.` , ``).length >= 9) return;
         
         this.currentOperand = this.currentOperand.toString() + number.toString();
     }
@@ -29,12 +31,16 @@ class Calculator{
         this.previousOperand = this.currentOperand;
         this.currentOperand  = ``;
     }
+    
+    truncate (number) {
+    return Math.trunc(number * Math.pow(10, 3)) / Math.pow(10, 3);
+    }
 
     compute(){
         let computation;
         const prev = Number.parseFloat(this.previousOperand);
         const current = Number.parseFloat(this.currentOperand);
-        if(!prev || !current) return;
+        if(isNaN(prev) || isNaN(current)) return;
         switch(this.operation){
             case `÷`:
                 computation = prev / current;
@@ -51,14 +57,18 @@ class Calculator{
             default:
                 return;
         }
-        this.currentOperand = computation;
+        this.currentOperand = this.truncate(computation);
         this.operation = undefined;
         this.previousOperand  = ``;
     }
 
     updateDisplay(){
         this.currentOperandField.innerText = this.currentOperand;
-        this.previousOperandField.innerText = this.previousOperand;
+        if (this.operation) {
+            this.previousOperandField.innerText = `${this.previousOperand} ${this.operation}`
+        } else {
+            this.previousOperandField.innerText = ``;
+        }
     }
 }
 const numberButtons = document.querySelectorAll(`[data-number]`);
@@ -90,3 +100,13 @@ equalButton.addEventListener(`click`, button =>{
     calculator.compute();
     calculator.updateDisplay();
 })
+
+deleteButton.addEventListener(`click`, button =>{
+    calculator.delete();
+    calculator.updateDisplay();
+});
+
+allClearButton.addEventListener(`click`, button =>{
+    calculator.clear();
+    calculator.updateDisplay();
+});
